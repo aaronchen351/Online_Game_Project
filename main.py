@@ -1,3 +1,4 @@
+import json
 import string
 from flask import Flask
 from flask import render_template
@@ -6,19 +7,32 @@ from flask import url_for, request
 import random
 
 app = Flask(__name__)
-current_lobies = {}
+# current_lobies = {}
+players = []
+game_state = {
+    "board": [[" " for _ in range(7)] for _ in range(6)],
+    "currentPlayer": "R",
+    "gameOver": False,
+    "currentColumns": [5, 5, 5, 5, 5, 5, 5],
+}
 
 
 @app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+def hellowoirld():
+    return "<h1> hellow world!!!</h1>"
 
 
-@app.get("/game?room=<roomId>")
-def game(roomId):
-    current_lobies[roomId]
-    GameRoom = current_lobies[roomId]
-    return f"Post {GameRoom}"
+@app.get("/game")
+def single_game():
+    return render_template("game.html", players=players, game_state=game_state)
+
+
+@app.post("/game")
+def update_single_game():
+    # nice security "feature"
+    global game_state
+    game_state = request.get_json()
+    return ("", 204)
 
 
 @app.get("/lobby")
@@ -28,8 +42,15 @@ def signup_form():
 
 @app.post("/lobby")
 def post_form():
-    randomID = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    players = []
-    players.append(request.form["name"])
-    current_lobies[randomID] = players
-    return redirect(url_for("game", roomId=randomID))
+    # randomID = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+
+    global players
+    global game_state
+    players = [request.form["name"]]
+    game_state = {
+        "board": [[" " for _ in range(7)] for _ in range(6)],
+        "currentPlayer": "R",
+        "gameOver": False,
+        "currentColumns": [5, 5, 5, 5, 5, 5],
+    }
+    return redirect(url_for("single_game"))
